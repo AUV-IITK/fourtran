@@ -144,9 +144,6 @@ add_executable(buoy src/buoy.cpp)
 target_link_libraries(buoy ${catkin_LIBRARIES})
 target_link_libraries(buoy ${OpenCV_LIBS})
 
-add_executable(test1 src/test1.cpp)
-target_link_libraries(test1 ${catkin_LIBRARIES})
-
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
