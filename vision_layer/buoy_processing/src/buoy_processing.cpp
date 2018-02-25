@@ -12,7 +12,7 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "buoy");
+  ros::init(argc, argv, "buoy_processing");
   ros::NodeHandle n;
   ros::Publisher coordinates_pub = n.advertise<std_msgs::Float32MultiArray>("/fourtran/vision/buoy_coordinates", 1000);
   float focal_length = 0.0;
