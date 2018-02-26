@@ -17,7 +17,6 @@ float buoy_pos_final;
 // a flag to control the start of the server untill data arrives
 bool data_received = false;
 
-
 class ActionClass
 {
 protected:
