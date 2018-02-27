@@ -5,10 +5,10 @@
 #include <string>
 
 #include <actionlib/server/simple_action_server.h>
-#include "motion_common/forwardAction.h"
+#include <motion_common/forwardAction.h>
 
 #include <dynamic_reconfigure/server.h>
-#include "motion_forward/pidConfig.h"
+#include <motion_forward/pidConfig.h>
 
 std_msgs::Int32 pwm;
 float buoy_pos_curr = 0;
@@ -30,7 +30,7 @@ protected:
 
 public:
 explicit ActionClass(std::string name):
-  // initialize the server with preempt state
+  // initialize the server and call analysisCB in constructor
   forward_server_(nh_, name, boost::bind(&ActionClass::analysisCB, this, _1), false), action_name_(name)
 {
   // register preempt callback
@@ -166,8 +166,9 @@ int main(int argc, char ** argv)
 {
   ros::init(argc, argv, "motion_forward");
   ros::NodeHandle n;
-  // get distance x(float) and apply pid
+  // subscribe to the bouy_coordinates topics
   ros::Subscriber ip = n.subscribe<std_msgs::Float32MultiArray>("/fourtran/vision/bouy_coordinates", 1000, callback_ip);
+
   ROS_INFO("%s is waiting for goal: ", ros::this_node::getName().c_str());
   ActionClass object(ros::this_node::getName());
 
