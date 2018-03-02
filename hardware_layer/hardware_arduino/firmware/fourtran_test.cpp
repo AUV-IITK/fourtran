@@ -9,7 +9,7 @@
 #include <std_msgs/Int32.h>
 
 #include "../include/Motor.h"
-#include "../include/FourtranConfig.h"
+#include "../include/FourTranConfig.h"
 
 #define COMMAND_RATE 15 //hz
 #define DEBUG_RATE 5
@@ -35,6 +35,13 @@ ros::Subscriber<std_msgs::Int32> motor4_pwm_sub("/pwm/motor4", &motor4_PWM_callb
 
 void setup()
 {
+    // setup motor hardware
+    motor1.setup();
+    motor2.setup();
+    motor3.setup();
+    motor4.setup();
+
+    // setup ROS
     nh.initNode();
     nh.getHardware()->setBaud(57600);
     nh.subscribe(motor1_pwm_sub);

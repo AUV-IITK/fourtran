@@ -3,13 +3,16 @@
 
 Motor::Motor(int pwm_pin, int motor_pinA, int motor_pinB)
 {
-    pinMode(pwm_pin, OUTPUT);
-    pinMode(motor_pinA, OUTPUT);
-    pinMode(motor_pinB, OUTPUT);
-
     pwm_pin_ = pwm_pin;
     motor_pinA_ = motor_pinA;
     motor_pinB_ = motor_pinB;
+}
+
+void Motor::setup()
+{
+  pinMode(pwm_pin_, OUTPUT);
+  pinMode(motor_pinA_, OUTPUT);
+  pinMode(motor_pinB_, OUTPUT);
 }
 
 void Motor::spin(int pwm)

@@ -10,7 +10,7 @@ add_definitions(-DUSB_CON)
 
 generate_arduino_firmware(fourtran_test
   SRCS fourtran_test.cpp ${ROS_LIB_DIR}/time.cpp ../src/Motor.cpp
-  HDRS ../include/Motor.h ../include/FourtranConfig.h
+  HDRS ../include/Motor.h ../include/FourTranConfig.h
   BOARD uno
   PORT /dev/ttyACM0
 )

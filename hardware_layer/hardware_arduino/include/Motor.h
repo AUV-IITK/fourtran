@@ -10,6 +10,7 @@ class Motor
 {
     public:
         Motor(int pwm_pin, int motor_pinA, int motor_pinB);
+        void setup();
         void spin(int pwm);
 
     private:
