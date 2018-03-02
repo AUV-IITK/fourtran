@@ -60,16 +60,24 @@ void loop()
 void motor1_PWM_callback(const std_msgs::Int32& msg)
 {
   motor1.spin(msg.data);
+  nh.loginfo("Motor1 data received");
 }
 void motor2_PWM_callback(const std_msgs::Int32& msg)
 {
   motor2.spin(msg.data);
+  nh.loginfo("Motor2 data received");
+  // nh.loginfo("Motor2 data: %d", msg.data);
+
 }
 void motor3_PWM_callback(const std_msgs::Int32& msg)
 {
   motor3.spin(msg.data);
+  nh.loginfo("Motor3 data received");
+  // nh.loginfo("Motor3 data: %d", msg.data);
 }
 void motor4_PWM_callback(const std_msgs::Int32& msg)
 {
   motor4.spin(msg.data);
+  nh.loginfo("Motor4 data received");
+  // nh.loginfo("Motor4 data: %d", msg.data);
 }
