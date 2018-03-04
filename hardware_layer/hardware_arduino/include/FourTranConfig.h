@@ -24,12 +24,12 @@ ROBOT ORIENTATION
 #define MOTOR2_IN_A 5
 #define MOTOR2_IN_B 7
 
-#define MOTOR3_PWM 9
+#define MOTOR3_PWM 10
 #define MOTOR3_IN_A 8
-#define MOTOR3_IN_B 10
+#define MOTOR3_IN_B 9
 
-#define MOTOR4_PWM 12
-#define MOTOR4_IN_A 11
+#define MOTOR4_PWM 11
+#define MOTOR4_IN_A 12
 #define MOTOR4_IN_B 13
 
 #endif
