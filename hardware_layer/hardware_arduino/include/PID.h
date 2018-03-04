@@ -29,8 +29,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __PID_H_INCLUDED__
 #define __PID_H_INCLUDED__
 
-#include "Arduino.h"
-
 class PID
 {
     public:
