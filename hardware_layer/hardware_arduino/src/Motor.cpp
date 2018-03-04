@@ -32,5 +32,5 @@ void Motor::spin(int pwm)
       digitalWrite(motor_pinA_, LOW);
       digitalWrite(motor_pinB_, LOW);
     }
-    analogWrite(pwm_pin_, abs(pwm));
+    analogWrite(pwm_pin_, 255 - abs(pwm));		 //inverse mapping in the motor driver
 }
