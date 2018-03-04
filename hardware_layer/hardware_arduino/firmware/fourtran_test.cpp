@@ -59,7 +59,7 @@ void setup()
 
 void loop()
 {
-    delay(200);  //call all the callbacks waiting to be called
+    delay(1000);  //call all the callbacks waiting to be called
     nh.spinOnce();
 }
 
