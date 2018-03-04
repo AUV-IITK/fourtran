@@ -14,7 +14,8 @@
 #define COMMAND_RATE 15 //hz
 #define DEBUG_RATE 5
 
-Motor motor1(MOTOR1_PWM, MOTOR1_IN_A, MOTOR1_IN_B);
+//defining instances of motors
+Motor motor1(MOTOR1_PWM, MOTOR1_IN_A, MOTOR1_IN_B);		
 Motor motor2(MOTOR2_PWM, MOTOR2_IN_A, MOTOR2_IN_B);
 Motor motor3(MOTOR3_PWM, MOTOR3_IN_A, MOTOR3_IN_B);
 Motor motor4(MOTOR4_PWM, MOTOR4_IN_A, MOTOR4_IN_B);
@@ -59,6 +60,7 @@ void setup()
 
 void loop()
 {
+    delay(1000);  
     //call all the callbacks waiting to be called
     nh.spinOnce();
 }
@@ -73,18 +75,15 @@ void motor2_PWM_callback(const std_msgs::Int32& msg)
 {
   motor2.spin(msg.data);
   nh.loginfo("Motor2 data received");
-  // nh.loginfo("Motor2 data: %d", msg.data);
 
 }
 void motor3_PWM_callback(const std_msgs::Int32& msg)
 {
   motor3.spin(msg.data);
   nh.loginfo("Motor3 data received");
-  // nh.loginfo("Motor3 data: %d", msg.data);
 }
 void motor4_PWM_callback(const std_msgs::Int32& msg)
 {
   motor4.spin(msg.data);
   nh.loginfo("Motor4 data received");
-  // nh.loginfo("Motor4 data: %d", msg.data);
 }
