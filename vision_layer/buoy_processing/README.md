@@ -35,11 +35,11 @@ roslaunch buoy_processing buoy_processing.roslaunch
 
 #### Subscribed Topics
 
-- `/hardware_layer/hardware_camera/camera/image_raw`
+- `hardware_camera/camera/image_raw`
 
 #### Published Topics
 
-- `/vision_layer/buoy_processing/buoy_coordinates`
+- `buoy_processing/buoy_coordinates`
 
 ## Bugs & Feature Requests
 

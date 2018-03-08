@@ -1,17 +1,16 @@
 <launch>
 
   <node pkg="buoy_processing" type="buoy_processing" name="buoy_processing">
-
+    <!-- calibration details for approximate depth estimation -->
     <param name="focal_length" value="10"/>
     <param name="known_width" value="1"/>
-
+    <!-- thresholding paramters -->
     <param name="low_b" value="0"/>
     <param name="low_g" value="33"/>
     <param name="low_r" value="141"/>
     <param name="high_b" value="255"/>
     <param name="high_g" value="255"/>
     <param name="high_r" value="255"/>
-
   </node>
 
 </launch>
