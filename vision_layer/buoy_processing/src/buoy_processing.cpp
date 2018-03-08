@@ -1,8 +1,12 @@
 #include "ros/ros.h"
-#include "std_msgs/Float32MultiArray.h"
+#include "sensor_msgs/Image.h"
 
-#include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include <cv_bridge/cv_bridge.h>
+
+#include <image_transport/image_transport.h>
+#include <sensor_msgs/image_encodings.h>
+#include <geometry_msgs/PointStamped.h>
 
 #include <iostream>
 #include <sstream>
@@ -11,90 +15,109 @@
 
 using namespace std;
 
+ros::Publisher coordinates_pub;
+// calibration details for approximate depth estimation
+float focal_length;
+float known_width;
+// thresholding paramters
+int low_bgr[3];
+int high_bgr[3];
+// camera frame name
+std::string camera_frame = "front_cam_link";
+
+void imageCallback(const sensor_msgs::Image::ConstPtr& msg)
+{
+  cv_bridge::CvImagePtr cv_img_ptr;
+  try
+  {
+    cv_img_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+    cv::Mat src = cv_img_ptr->image;
+
+    if(!src.empty())
+    {
+      //// pre-processing image
+      // applying gaussian blur for smoothening
+      cv::blur(src, src, cv::Size(3,3));
+      // thresholding image
+      cv::Mat thresholded;
+      cv::inRange(src, cv::Scalar(low_bgr[0], low_bgr[1], low_bgr[2]), cv::Scalar(high_bgr[0], high_bgr[1], high_bgr[2]), thresholded);
+      // identifying contour
+      std::vector<std::vector<cv::Point> > contours;
+      std::vector<cv::Vec4i> hierarchy;
+      //// finding contour of largest area
+      cv::findContours(thresholded, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+      ROS_INFO("contours size = %d", contours.size());
+
+      if (contours.size() != 0)
+      {
+        int index = -1;
+        float max_area = 0.0;
+        float area = 0.0;
+        for( int i = 0; i< contours.size(); i++ )
+        {
+          area = cv::contourArea(contours[i]);
+          if(area > max_area)
+          {
+            index = i;
+     	      max_area =area;
+          }
+        }
+        // calculating center of mass of contour using moments
+        std::vector<cv::Moments> mu(1);
+        mu[0] = moments(contours[index], false);
+        std::vector<cv::Point2f> mc(1);
+        mc[0] = cv::Point2f( mu[0].m10/mu[0].m00 , mu[0].m01/mu[0].m00 );
+        cv::Rect bounding_rectangle = cv::boundingRect(cv::Mat(contours[index]));
+
+        // publish coordinates message
+        geometry_msgs::PointStamped buoy_point_message;
+
+        buoy_point_message.header.stamp = ros::Time();
+        buoy_point_message.header.frame_id = camera_frame.c_str();
+        buoy_point_message.point.x = (bounding_rectangle.br().x + bounding_rectangle.tl().x)/2 - (src.size().width)/2;
+        buoy_point_message.point.y = ((float)src.size().height)/2 - (bounding_rectangle.br().y + bounding_rectangle.tl().y)/2;
+        buoy_point_message.point.z = (known_width * focal_length) / (bounding_rectangle.br().x + bounding_rectangle.tl().x);
+
+        ROS_INFO("Buoy Location (x, y, z) = (%.2f, %.2f, %.2f)", buoy_point_message.point.x, buoy_point_message.point.y, buoy_point_message.point.z);
+
+        coordinates_pub.publish(buoy_point_message);
+      }
+    }
+  }
+  catch(cv_bridge::Exception& e)
+  {
+    ROS_ERROR("cv_bridge exception: %s", e.what());
+    return;
+  }
+}
+
 int main(int argc, char **argv)
 {
   // initiliazing ROS node
   ros::init(argc, argv, "buoy_processing");
-  ros::NodeHandle n;
-  ros::Rate loop_rate(0.5);
+  ros::NodeHandle nh;
 
-  // initializing publishers
-  ros::Publisher coordinates_pub = n.advertise<std_msgs::Float32MultiArray>("buoy_coordinates", 1000);
-  std_msgs::Float32MultiArray coordinate_message;
+  // reading parameters from the paramter server
+  ros::param::get("buoy_processing/focal_length", focal_length);
+  ros::param::get("buoy_processing/known_width", known_width);
+  ros::param::get("buoy_processing/low_b", low_bgr[0]);
+  ros::param::get("buoy_processing/low_g", low_bgr[1]);
+  ros::param::get("buoy_processing/low_r", low_bgr[2]);
+  ros::param::get("buoy_processing/high_b", high_bgr[0]);
+  ros::param::get("buoy_processing/high_g", high_bgr[1]);
+  ros::param::get("buoy_processing/high_r", high_bgr[2]);
 
-  //// reading paramters
-  // for depth estimation
-  float focal_length = 0.0;
-  float known_width = 0.0;
-  n.getParam("buoy_distance_z/focal_length", focal_length);
-  n.getParam("buoy_distance_z/known_width", known_width);
-  // for thresholding
-  int low_bgr[] = {0, 0, 0};
-  int high_bgr[] = {0, 0, 0};
-  n.getParam("buoy_thresholding/low_b", low_bgr[0]);
-  n.getParam("buoy_thresholding/low_g", low_bgr[1]);
-  n.getParam("buoy_thresholding/low_r", low_bgr[2]);
-  n.getParam("buoy_thresholding/high_b", high_bgr[0]);
-  n.getParam("buoy_thresholding/high_g", high_bgr[1]);
-  n.getParam("buoy_thresholding/high_r", high_bgr[2]);
   ROS_INFO("Thresholding BGR with range: (%d, %d, %d) - (%d, %d, %d)", low_bgr[0], low_bgr[1], low_bgr[2], high_bgr[0], high_bgr[1], high_bgr[2]);
 
-  // caputring frame using OpenCV
-  cv::VideoCapture cap;
+  // initializing publishers
+  coordinates_pub = nh.advertise<geometry_msgs::PointStamped>("/buoy_processing/buoy_coordinates", 1000);
 
-  if(!cap.open(0))
-    ROS_ERROR("Problem with video camera");
+  //initializing subscribers
+  image_transport::ImageTransport it(nh);
+  image_transport::Subscriber image_raw_sub = it.subscribe("/hardware_camera/camera/image_raw", 1, imageCallback);
 
-  while(true && ros::ok())
-  {
-    cv::Mat src;
-    cap >> src;
-    if( src.empty() )
-      break;
+  ros::spin();
 
-    //// pre-processing image
-    // applying gaussian blur for smoothening
-    cv::blur(src, src, cv::Size(3,3));
-    // thresholding image
-    cv::Mat thresholded;
-    cv::inRange(src, cv::Scalar(low_bgr[0], low_bgr[1], low_bgr[2]), cv::Scalar(high_bgr[0], high_bgr[1], high_bgr[2]), thresholded);
-    // identifying contour
-    std::vector<std::vector<cv::Point> > contours;
-    std::vector<cv::Vec4i> hierarchy;
-    cv::findContours(thresholded, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-    //// finding contour of largest area
-    int index = -1;
-    float max_area = 0.0;
-    float area = 0.0;
-    for( int i = 0; i< contours.size(); i++ )
-    {
-      area = cv::contourArea(contours[i]);
-      if(area > max_area)
-      {
-        index = i;
- 	      max_area =area;
-      }
-    }
-    // caluclating center of mass of contour using moments
-    std::vector<cv::Moments> mu(1);
-    mu[0] = moments(contours[index], false);
-    std::vector<cv::Point2f> mc(1);
-    mc[0] = cv::Point2f( mu[0].m10/mu[0].m00 , mu[0].m01/mu[0].m00 );
-    cv::Rect bounding_rectangle = cv::boundingRect(cv::Mat(contours[index]));
-    float x = (bounding_rectangle.br().x + bounding_rectangle.tl().x)/2 - (src.size().width)/2;
-    float y = ((float)src.size().height)/2 - (bounding_rectangle.br().y + bounding_rectangle.tl().y)/2;
-    float z = (known_width * focal_length) / (bounding_rectangle.br().x + bounding_rectangle.tl().x);
-
-    // publish coordinates message
-    coordinate_message.data.clear();
-    coordinate_message.data.push_back(x);
-    coordinate_message.data.push_back(y);
-    coordinate_message.data.push_back(z);
-    coordinates_pub.publish(coordinate_message);
-    ROS_INFO("Buoy Location (x, y, z) = (%.2f, %.2f, %.2f)", x, y, z);
-
-    ros::spinOnce();
-    loop_rate.sleep();
-  }
   return 0;
 }
