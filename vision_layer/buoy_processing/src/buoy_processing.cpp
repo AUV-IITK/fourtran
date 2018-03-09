@@ -98,6 +98,8 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "buoy_processing");
   ros::NodeHandle nh;
 
+  ROS_INFO("buoy_processing node initialized");
+
   // reading parameters from the paramter server
   ros::param::get("buoy_processing/focal_length", focal_length);
   ros::param::get("buoy_processing/known_width", known_width);
