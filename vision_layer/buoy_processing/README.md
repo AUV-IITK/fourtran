@@ -33,14 +33,24 @@ roslaunch buoy_processing buoy_processing.roslaunch
 
 ### buoy_processing
 
+The node thresholds the input image using threshold values specified in the file [buoy_config.yaml](cfg/buoy_config.yaml). After this pre- processing, contours are detected and the center of the detected buoy is approximated as the center of moment of the largest area detected in the input image. The depth estimation of the buoy is calcuated using the following formula:
+```
+z = (known_width * focal_length) / apparent_width
+```
+ where `known_width` is the true diameter of the buoy and `focal_length` is the focal length of the camera used.
+
 #### Subscribed Topics
 
-- `hardware_camera/camera/image_raw`
+- **`hardware_camera/camera/image_raw`** ([sensor_msgs/Image])
 
 #### Published Topics
 
-- `buoy_processing/buoy_coordinates`
+- **`buoy_processing/buoy_coordinates`** ([geometry_msgs::PointStamped])
 
 ## Bugs & Feature Requests
 
 Please report bugs and request features using the [Issue Tracker](https://github.com/AUV-IITK/fourtran/issues).
+
+[sensor_msgs/Image]: http://docs.ros.org/api/sensor_msgs/html/msg/Image.html
+[geometry_msgs::PointStamped]: http://docs.ros.org/api/geometry_msgs/html/msg/PointStamped.html
+
