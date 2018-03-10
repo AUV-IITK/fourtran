@@ -21,7 +21,7 @@ wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/inst
 
 ### Calibrating the sensor
 
-Download [QGround Control](https://docs.qgroundcontrol.com/en/getting_started/download_and_install.html) and run it with PIXHAWK attached with your computer. Read the manual [here](https://docs.qgroundcontrol.com/en/SetupView/Sensors.html) for further instructions.
+Download [QGround Control](https://docs.qgroundcontrol.com/en/getting_started/download_and_install.html) and run it with PIXHAWK connected to the computer. Read the manual [here](https://docs.qgroundcontrol.com/en/SetupView/Sensors.html) for further instructions.
 
 ### Building the package
 Run the following command from the root of your catkin workspace:
@@ -71,7 +71,7 @@ The `mavros_node` is the main communication node for the MAVLink communication p
 
 This node takes the IMU data in quateranion format and convert it into euler angles. Since for a ground robot, we are interested mainly on the yaw angle, we calculate it using the following formula:
 ```
-yaw = atan2 ( 2 * x * y - 2 * w * z, 2 * w * w + 2 * x * x - 1)
+yaw = atan2 ( 2*x*y - 2*w*z, 2*w*w + 2*x*x - 1)
 ```
 where `q = (w, x, y, z)` is the quaternion angle.
 
