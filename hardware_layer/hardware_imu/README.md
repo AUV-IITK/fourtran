@@ -30,9 +30,9 @@ catkin_make --pkg hardware_imu
 ```
 
 ## Usage
-To run the IMU:
+To run the PIXHAWK IMU:
 ```
-rosrun mavros mavros_node _fcu_url:=/dev/ttyACM0:921600 _gcs_url:=udp://@172.16.254.1
+roslaunch hardware_imu imu_px4.launch
 ```
 where the PIXHAWK is assumed to be connected at the `/dev/ttyACM0` port.
 
