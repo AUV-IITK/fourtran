@@ -25,7 +25,7 @@
 
      ros::Subscriber imu_data_sub = nh.subscribe<sensor_msgs::Imu>("/mavros/imu/data", 1000, &imu_data_callback);
 
-     imu_data_pub = nh.advertise<std_msgs::Float64>("/varun/sensors/imu/yaw", 1000);
+     imu_data_pub = nh.advertise<std_msgs::Float64>("/mavros/imu/yaw", 1000);
 
      ros::spin();
 
