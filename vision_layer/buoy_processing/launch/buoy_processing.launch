@@ -1,0 +1,9 @@
+<launch>
+
+  <arg name="buoy_config_file" default="$(find buoy_processing)/cfg/buoy_config.yaml"/>
+
+  <node pkg="buoy_processing" type="buoy_processing" name="buoy_processing" output="screen">
+    <rosparam command="load" file="$(arg buoy_config_file)" />
+  </node>
+
+</launch>
