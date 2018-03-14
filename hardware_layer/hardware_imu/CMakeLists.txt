@@ -1,26 +1,20 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(hardware_camera)
+project(hardware_imu)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roslint
+  message_generation
+  message_runtime
   roscpp
   rospy
   std_msgs
-  sensor_msgs
-  message_generation
-  image_transport
-  usb_cam
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-roslint_cpp()
-
-## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS system)
 
 ###################################
 ## catkin specific configuration ##
@@ -33,8 +27,8 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   #  INCLUDE_DIRS include
-  #  LIBRARIES task_buoy
-  CATKIN_DEPENDS roscpp rospy std_msgs message_generation
+  #  LIBRARIES IMU
+  CATKIN_DEPENDS message_generation message_runtime roscpp rospy std_msgs
   #  DEPENDS system_lib
 )
 
@@ -42,15 +36,12 @@ catkin_package(
 ## Build ##
 ###########
 
-# set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-# set(CMAKE_CXX_FLAGS "-std=gnu++11 ${CMAKE_CXX_FLAGS}")
-
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
 include_directories(
   # include
-  # ${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake
   ${catkin_INCLUDE_DIRS}
-  # ${OpenCV_INCLUDE_DIRS}
 )
+
+add_executable(yaw_publisher src/yaw_publisher.cpp)
+target_link_libraries(yaw_publisher ${catkin_LIBRARIES})

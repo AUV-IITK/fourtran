@@ -1,9 +1,10 @@
 #include "ros/ros.h"
-#include "std_msgs/Float32MultiArray.h"
 #include "sensor_msgs/Image.h"
+
 #include "opencv2/imgproc/imgproc.hpp"
-#include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
+
+#include <image_transport/image_transport.h>
 #include <sensor_msgs/image_encodings.h>
 #include <geometry_msgs/PointStamped.h>
 
@@ -15,19 +16,25 @@
 using namespace std;
 
 ros::Publisher coordinates_pub;
+// calibration details for approximate depth estimation
 float focal_length;
 float known_width;
+// thresholding paramters
 int low_bgr[3];
 int high_bgr[3];
-std::string camera_frame = "camera_link";
+// camera frame name
+std::string camera_frame = "front_cam_link";
 
 void imageCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
   cv_bridge::CvImagePtr cv_img_ptr;
-  try {
+  try
+  {
     cv_img_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
     cv::Mat src = cv_img_ptr->image;
-    if(!src.empty()) {
+
+    if(!src.empty())
+    {
       //// pre-processing image
       // applying gaussian blur for smoothening
       cv::blur(src, src, cv::Size(3,3));
@@ -39,8 +46,11 @@ void imageCallback(const sensor_msgs::Image::ConstPtr& msg)
       std::vector<cv::Vec4i> hierarchy;
       //// finding contour of largest area
       cv::findContours(thresholded, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
       ROS_INFO("contours size = %d", contours.size());
-      if(contours.size() != 0) {
+
+      if (contours.size() != 0)
+      {
         int index = -1;
         float max_area = 0.0;
         float area = 0.0;
@@ -53,41 +63,31 @@ void imageCallback(const sensor_msgs::Image::ConstPtr& msg)
      	      max_area =area;
           }
         }
-        // caluclating center of mass of contour using moments
+        // calculating center of mass of contour using moments
         std::vector<cv::Moments> mu(1);
-        ROS_INFO("Here9");
-        ROS_INFO("index = %d", index);
         mu[0] = moments(contours[index], false);
-        ROS_INFO("Here10");
         std::vector<cv::Point2f> mc(1);
-        ROS_INFO("Here11");
         mc[0] = cv::Point2f( mu[0].m10/mu[0].m00 , mu[0].m01/mu[0].m00 );
-        ROS_INFO("Here12");
         cv::Rect bounding_rectangle = cv::boundingRect(cv::Mat(contours[index]));
-        ROS_INFO("Here13");
-        float x = (bounding_rectangle.br().x + bounding_rectangle.tl().x)/2 - (src.size().width)/2;
-        float y = ((float)src.size().height)/2 - (bounding_rectangle.br().y + bounding_rectangle.tl().y)/2;
-        float z = (known_width * focal_length) / (bounding_rectangle.br().x + bounding_rectangle.tl().x);
-        ROS_INFO("Here14");
 
         // publish coordinates message
         geometry_msgs::PointStamped buoy_point_message;
-        ROS_INFO("Here15");
 
         buoy_point_message.header.stamp = ros::Time();
         buoy_point_message.header.frame_id = camera_frame.c_str();
-        buoy_point_message.point.x = x;
-        buoy_point_message.point.y = y;
-        buoy_point_message.point.z = z;
-        ROS_INFO("Here16");
+        buoy_point_message.point.x = (bounding_rectangle.br().x + bounding_rectangle.tl().x)/2 - (src.size().width)/2;
+        buoy_point_message.point.y = ((float)src.size().height)/2 - (bounding_rectangle.br().y + bounding_rectangle.tl().y)/2;
+        buoy_point_message.point.z = (known_width * focal_length) / (bounding_rectangle.br().x + bounding_rectangle.tl().x);
+
+        ROS_INFO("Buoy Location (x, y, z) = (%.2f, %.2f, %.2f)", buoy_point_message.point.x, buoy_point_message.point.y, buoy_point_message.point.z);
 
         coordinates_pub.publish(buoy_point_message);
-        ROS_INFO("Here17");
-        ROS_INFO("Buoy Location (x, y, z) = (%.2f, %.2f, %.2f)", x, y, z);
       }
     }
   }
-  catch(cv_bridge::Exception& e) {
+  catch(cv_bridge::Exception& e)
+  {
+    ROS_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
 }
@@ -98,13 +98,9 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "buoy_processing");
   ros::NodeHandle nh;
 
-  // initializing publishers
-  coordinates_pub = nh.advertise<geometry_msgs::PointStamped>("/vision_layer/buoy_processing/buoy_coordinates", 1000);
+  ROS_INFO("buoy_processing node initialized");
 
-  //initializing subscribers
-  image_transport::ImageTransport it(nh);
-  image_transport::Subscriber image_raw_sub = it.subscribe("/hardware_layer/hardware_camera/camera/image_raw", 1, imageCallback);
-
+  // reading parameters from the paramter server
   ros::param::get("buoy_processing/focal_length", focal_length);
   ros::param::get("buoy_processing/known_width", known_width);
   ros::param::get("buoy_processing/low_b", low_bgr[0]);
@@ -113,7 +109,17 @@ int main(int argc, char **argv)
   ros::param::get("buoy_processing/high_b", high_bgr[0]);
   ros::param::get("buoy_processing/high_g", high_bgr[1]);
   ros::param::get("buoy_processing/high_r", high_bgr[2]);
+
   ROS_INFO("Thresholding BGR with range: (%d, %d, %d) - (%d, %d, %d)", low_bgr[0], low_bgr[1], low_bgr[2], high_bgr[0], high_bgr[1], high_bgr[2]);
+
+  // initializing publishers
+  coordinates_pub = nh.advertise<geometry_msgs::PointStamped>("/buoy_processing/buoy_coordinates", 1000);
+
+  //initializing subscribers
+  image_transport::ImageTransport it(nh);
+  image_transport::Subscriber image_raw_sub = it.subscribe("/hardware_camera/camera/image_raw", 1, imageCallback);
+
   ros::spin();
+
   return 0;
 }
