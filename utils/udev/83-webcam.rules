@@ -1,0 +1,2 @@
+ACTION=="add", KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="0770", SYMLINK+="fourtran_camera"
+

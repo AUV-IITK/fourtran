@@ -9,8 +9,9 @@ The main purpose of the robot is to act as a testing robot for our vision and co
 1. Create a catkin worspace following the guidelines given [here](http://wiki.ros.org/catkin/Tutorials/create_a_workspace)
 ```bash
 mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws/src
 catkin_init_workspace
-cd ~/catkin_ws/
+cd ..
 catkin_make
 ```
 

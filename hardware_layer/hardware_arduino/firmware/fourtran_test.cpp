@@ -15,10 +15,10 @@
 #define DEBUG_RATE 5
 
 //defining instances of motors
-Motor motor1(MOTOR1_PWM, MOTOR1_IN_A, MOTOR1_IN_B);		
-Motor motor2(MOTOR2_PWM, MOTOR2_IN_A, MOTOR2_IN_B);
-Motor motor3(MOTOR3_PWM, MOTOR3_IN_A, MOTOR3_IN_B);
-Motor motor4(MOTOR4_PWM, MOTOR4_IN_A, MOTOR4_IN_B);
+Motor motor1(MOTOR1_PWM, MOTOR1_IN_A, MOTOR1_IN_B, MOTOR1_CURRENT);
+Motor motor2(MOTOR2_PWM, MOTOR2_IN_A, MOTOR2_IN_B, MOTOR2_CURRENT);
+Motor motor3(MOTOR3_PWM, MOTOR3_IN_A, MOTOR3_IN_B, MOTOR3_CURRENT);
+Motor motor4(MOTOR4_PWM, MOTOR4_IN_A, MOTOR4_IN_B, MOTOR4_CURRENT);
 
 float PWM_MAX = pow(2, PWM_BITS) - 1;
 
@@ -60,7 +60,7 @@ void setup()
 
 void loop()
 {
-    delay(1000);  
+    delay(100);
     //call all the callbacks waiting to be called
     nh.spinOnce();
 }
