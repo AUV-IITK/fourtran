@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 
   //initializing subscribers
   image_transport::ImageTransport it(nh);
-  image_transport::Subscriber image_raw_sub = it.subscribe("/hardware_camera/camera/image_raw", 1, imageCallback);
+  image_transport::Subscriber image_raw_sub = it.subscribe("/hardware_camera/cam_lifecam/image_raw", 1, imageCallback);
 
   ros::spin();
 
